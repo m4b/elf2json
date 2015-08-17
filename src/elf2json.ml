@@ -1,5 +1,7 @@
 open LibRdr.Utils
 
+let version = "v1.0.0"
+
 let goblin = Goblin.Symbol.Export
 
 let get_bytes filename = 
@@ -40,6 +42,7 @@ let get_bytes filename =
           end
       end
 
+let print_version = ref false
 let minify = ref false
 let include_coverage = ref false
 let include_base64 = ref false
@@ -130,12 +133,16 @@ let main =
      ("-b", Arg.Set include_base64, "Include the binary as a base64 encoded string; default false");
      ("--base64", Arg.Set include_base64, "Include the binary as a base64 encoded string; default false");
      ("-c", Arg.Set include_coverage, "Output data from the byte coverage algorithm; default false");
-     ("--coverage", Arg.Set include_coverage, "Output data from the byte coverage algorithm; default false");     
+     ("--coverage", Arg.Set include_coverage, "Output data from the byte coverage algorithm; default false");
+     ("-v", Arg.Set print_version, "Prints the version");     
     ] in
   let usage_msg = "usage: elf2json [-m --minify] [-b --base64] [-c --coverage] <path_to_binary>\noptions:" in
   Arg.parse speclist set_anon_argument usage_msg;
   let config = init_config() in
-  if (!binary = "") then
+  if (!print_version) then
+      Printf.printf "%s\n" @@ version
+  else
+    if (!binary = "") then
     begin
       Printf.eprintf "Error: no path to binary given\n";
       Arg.usage speclist usage_msg;
