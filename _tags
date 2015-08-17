@@ -1,0 +1,33 @@
+# OASIS_START
+# DO NOT EDIT (digest: 76fde6c3bd92d2754673c106066965d7)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+true: annot, bin_annot
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library e2jlib
+"lib/e2jlib.cmxs": use_e2jlib
+<lib/*.ml{,i,y}>: pkg_jsonm
+<lib/*.ml{,i,y}>: pkg_rdr
+<lib/*.ml{,i,y}>: pkg_rdr.elf
+# Executable elf2json
+<src/elf2json.{native,byte}>: pkg_base64
+<src/elf2json.{native,byte}>: pkg_jsonm
+<src/elf2json.{native,byte}>: pkg_rdr
+<src/elf2json.{native,byte}>: pkg_rdr.elf
+<src/elf2json.{native,byte}>: use_e2jlib
+<src/*.ml{,i,y}>: pkg_base64
+<src/*.ml{,i,y}>: pkg_jsonm
+<src/*.ml{,i,y}>: pkg_rdr
+<src/*.ml{,i,y}>: pkg_rdr.elf
+<src/*.ml{,i,y}>: use_e2jlib
+# OASIS_STOP

@@ -1,0 +1,37 @@
+OASISFormat: 0.4
+Name:        e2j
+Version:     1.0
+Synopsis:    None
+Authors:     m4b
+License:     BSD-3-clause
+Plugins:     META (0.4), DevFiles (0.4)
+
+Library e2jlib
+  Path: lib
+  BuildTools: ocamlbuild
+  Install: false
+  BuildDepends:
+    jsonm,
+    rdr,
+    rdr.elf
+  Modules:
+    E2j,
+    E2j_ElfHeader,
+    E2j_ElfProgramHeader,
+    E2j_ElfSectionHeader,
+    E2j_ElfSymbolTable,
+    E2j_ElfDynamic,
+    E2j_ByteCoverage,
+    E2j_ElfReloc
+  InternalModules:
+    E2j_Json
+
+Executable elf2json
+  Path:       src
+  BuildTools: ocamlbuild
+  MainIs:     elf2json.ml
+  CompiledObject: best
+  BuildDepends:
+    e2jlib,
+    base64,
+    rdr.elf

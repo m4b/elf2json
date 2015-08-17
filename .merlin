@@ -1,0 +1,8 @@
+PKG jsonm
+PKG rdr
+PKG base64
+
+S src
+S lib
+B _build/src
+B _build/lib

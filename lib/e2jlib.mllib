@@ -1,0 +1,12 @@
+# OASIS_START
+# DO NOT EDIT (digest: 34f7cd5409091c5ed132dbad05f1c4c3)
+E2j
+E2j_ElfHeader
+E2j_ElfProgramHeader
+E2j_ElfSectionHeader
+E2j_ElfSymbolTable
+E2j_ElfDynamic
+E2j_ByteCoverage
+E2j_ElfReloc
+E2j_Json
+# OASIS_STOP
