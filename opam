@@ -18,5 +18,7 @@ remove: [
 depends: [
          "ocamlfind" {build}
          "rdr"
+         "base64"
+         "jsonm"
          ]
 available: [ocaml-version >= "4.02"]
