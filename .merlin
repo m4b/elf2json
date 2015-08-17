@@ -1,5 +1,6 @@
 PKG jsonm
 PKG rdr
+PKG rdr.elf
 PKG base64
 
 S src

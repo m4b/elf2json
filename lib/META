@@ -1,0 +1,12 @@
+# OASIS_START
+# DO NOT EDIT (digest: 5783b88574d6d8cf18f1020869d79454)
+version = "1.0.0"
+description = "Converts an ELF binary to a JSON representation"
+requires = "jsonm rdr rdr.elf"
+archive(byte) = "e2jlib.cma"
+archive(byte, plugin) = "e2jlib.cma"
+archive(native) = "e2jlib.cmxa"
+archive(native, plugin) = "e2jlib.cmxs"
+exists_if = "e2jlib.cma"
+# OASIS_STOP
+
