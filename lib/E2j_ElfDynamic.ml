@@ -9,13 +9,8 @@ let dyn2json dyn =
     "name", `String (tag_to_string dyn.d_tag);
   ]
 
-let dynamic_symbols2json ~raw:raw syms = 
+let dynamic_symbols2json syms = 
   let json = List.map sym2json syms in
-  let raw = if (raw) then 
-      `String (Elf.SymbolTable.to_bytes syms)
-    else
-      `Null
-  in
   let meta = 
     [
       "bytes", to_byte_array [4; 1; 1; 2; 8; 8;];
@@ -23,17 +18,11 @@ let dynamic_symbols2json ~raw:raw syms =
     ] in
   `O [
     "value",`A json;
-    "raw", raw;
     "meta", `O meta;
   ]
 
-let to_json ~raw:raw dyns = 
+let to_json dyns = 
   let json = List.map dyn2json dyns in
-  let raw = if (raw) then 
-      `String (Elf.Dynamic.to_bytes dyns)
-    else
-      `Null
-  in
   let meta = 
     [
       "bytes", to_byte_array [8; 8];
@@ -41,7 +30,6 @@ let to_json ~raw:raw dyns =
     ] in
   `O [
     "value",`A json;
-    "raw", raw;
     "meta", `O meta;
   ]
 

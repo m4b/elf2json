@@ -31,3 +31,5 @@ true: annot, bin_annot
 <src/*.ml{,i,y}>: pkg_rdr.elf
 <src/*.ml{,i,y}>: use_e2jlib
 # OASIS_STOP
+<bin> : -traverse
+<cee> : -traverse

@@ -10,13 +10,8 @@ let rela2json rela =
     "type", to_float rela.symtype;
   ]
 
-let to_json ~raw:raw relocs = 
+let to_json relocs = 
   let json = List.map rela2json relocs in
-  let raw = if (raw) then 
-      `String (Elf.Reloc.to_bytes relocs)
-    else
-      `Null
-  in
   let meta = 
     [
       "bytes", to_byte_array [8; 8; 8;];
@@ -24,7 +19,6 @@ let to_json ~raw:raw relocs =
     ] in
   `O [
     "value",`A json;
-    "raw", raw;
     "meta", `O meta;
   ]
 

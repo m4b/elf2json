@@ -14,13 +14,8 @@ let ident2json ident =
     ] in
   `O json
 
-let to_json ~raw:raw header = 
+let to_json header = 
   let ident = "e_ident", ident2json header.e_ident in
-  let raw = if (raw) then 
-      `String (Elf.Header.to_bytes header)
-    else
-      `Null
-  in
   let meta = 
     [
       "bytes", to_byte_array
@@ -49,6 +44,5 @@ let to_json ~raw:raw header =
     ] in
   `O [
     "value", `O json;
-    "raw", raw;
     "meta", `O meta;
   ]

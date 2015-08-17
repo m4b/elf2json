@@ -41,18 +41,16 @@ let get_bytes filename =
       end
 
 let minify = ref false
-let raw = ref false
-let include_code = ref false
-let include_bytes = ref false
+let include_coverage = ref false
+let include_base64 = ref false
 let binary = ref ""
 let set_anon_argument string =
   binary := string
 
 type config = {
   minify: bool;
-  raw: bool;
-  include_code: bool;
-  include_bytes: bool;
+  include_coverage: bool;
+  include_base64: bool;
   install_name: string;
   name: string;
 }
@@ -67,36 +65,40 @@ let init_config () =
   let name = Filename.basename install_name in
   {
     minify = !minify; 
-    raw = !raw; 
-    include_code = !include_code; 
-    include_bytes = !include_bytes; 
+    include_coverage = !include_coverage; 
+    include_base64 = !include_base64;
     install_name; 
     name
   }
 
+(* 
 let to_raw binary = 
   (Array.init  (Bytes.length binary) (fun i ->
        Bytes.get binary i 
        |> Char.code
        |> E2j.Json.to_hex
      )) |> Array.to_list
-
+ *)
+    
 let to_json config =
   let binary = get_bytes config.install_name in
-  let elf = Elf.get ~meta_only:config.include_code binary in
-  let header = E2j.Header.to_json config.raw elf.Elf.header in
-  let program_headers = E2j.ProgramHeader.to_json config.raw elf.Elf.program_headers in
-  let section_headers = E2j.SectionHeader.to_json config.raw elf.Elf.section_headers in
-  let _dynamic = E2j.Dynamic.to_json config.raw elf.Elf._dynamic in
-  let dynamic_symbols = E2j.Dynamic.dynamic_symbols2json config.raw elf.Elf.dynamic_symbols in
-  let symbol_table = E2j.SymbolTable.to_json config.raw elf.Elf.symbol_table in
-  let relocs = E2j.Reloc.to_json config.raw elf.Elf.relocations in
+  let elf = Elf.get ~meta_only:true binary in
+  let header = E2j.Header.to_json elf.Elf.header in
+  let program_headers = E2j.ProgramHeader.to_json elf.Elf.program_headers in
+  let section_headers = E2j.SectionHeader.to_json  elf.Elf.section_headers in
+  let _dynamic = E2j.Dynamic.to_json elf.Elf._dynamic in
+  let dynamic_symbols = E2j.Dynamic.dynamic_symbols2json elf.Elf.dynamic_symbols in
+  let symbol_table = E2j.SymbolTable.to_json elf.Elf.symbol_table in
+  let relocs = E2j.Reloc.to_json elf.Elf.relocations in
   let libraries = `A (List.map (fun lib -> `String lib)
                         elf.Elf.libraries)
   in
-  let coverage = E2j.Coverage.to_json elf.Elf.byte_coverage in
-  let raw = if (config.include_bytes) then
-      (*       `A (to_raw binary) *)
+  let coverage = if (config.include_coverage) then
+                   E2j.Coverage.to_json elf.Elf.byte_coverage
+                 else
+                   `Null
+  in
+  let b64 = if (config.include_base64) then
       `String (B64.encode binary)
     else
       `Null
@@ -117,7 +119,7 @@ let to_json config =
       "is64", `Bool elf.Elf.is_64;
       "size", E2j_Json.to_number elf.Elf.size;
       "coverage", coverage;
-      "raw", raw;
+      "base64", b64;
     ] in
   E2j.Json.print ~minify:config.minify json
 
@@ -125,14 +127,12 @@ let main =
   let speclist = 
     [("-m", Arg.Set minify, "Minify the json output; default false");
      ("--minify", Arg.Set minify, "Minify the json output; default false");
-     ("-r", Arg.Set raw, "Output raw header and symbol bytes; default false");
-     ("--raw", Arg.Set raw, "Output raw header and symbol bytes;; default false");
-     ("-b", Arg.Set include_bytes, "Include all raw binary bytes; default false");
-     ("--bytes", Arg.Set include_bytes, "Include all raw binary bytes; default false");
-     ("-c", Arg.Set include_code, "Output raw code bytes; default false");
-     ("--code", Arg.Set include_code, "Output raw code bytes; default false");
+     ("-b", Arg.Set include_base64, "Include the binary as a base64 encoded string; default false");
+     ("--base64", Arg.Set include_base64, "Include the binary as a base64 encoded string; default false");
+     ("-c", Arg.Set include_coverage, "Output data from the byte coverage algorithm; default false");
+     ("--coverage", Arg.Set include_coverage, "Output data from the byte coverage algorithm; default false");     
     ] in
-  let usage_msg = "usage: elf2json [-r --raw] [-m --minify] [-c --code] <path_to_binary>\noptions:" in
+  let usage_msg = "usage: elf2json [-m --minify] [-b --base64] [-c --coverage] <path_to_binary>\noptions:" in
   Arg.parse speclist set_anon_argument usage_msg;
   let config = init_config() in
   if (!binary = "") then

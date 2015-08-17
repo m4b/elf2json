@@ -18,13 +18,8 @@ let sym2json sym =
                      |> symbol_type_to_string);
   ]
 
-let to_json ~raw:raw syms = 
+let to_json syms = 
   let json = List.map sym2json syms in
-  let raw = if (raw) then 
-      `String (Elf.SymbolTable.to_bytes syms)
-    else
-      `Null
-  in
   let meta = 
     [
       "bytes", to_byte_array [4; 1; 1; 2; 8; 8;];
@@ -32,7 +27,6 @@ let to_json ~raw:raw syms =
     ] in
   `O [
     "value",`A json;
-    "raw", raw;
     "meta", `O meta;
   ]
 

@@ -16,13 +16,8 @@ let section_header2json sh =
     "type", `String (shtype_to_string sh.sh_type);
   ]
 
-let to_json ~raw:raw shs = 
+let to_json shs = 
   let json = Array.map section_header2json shs |> Array.to_list in
-  let raw = if (raw) then 
-      `String (Elf.SectionHeader.to_bytes shs)
-    else
-      `Null
-  in
   let meta = 
     [
       "bytes", to_byte_array [4; 4; 8; 8; 8; 8; 4; 4; 8; 8;];
@@ -30,7 +25,6 @@ let to_json ~raw:raw shs =
     ] in
   `O [
     "value",`A json;
-    "raw", raw;
     "meta", `O meta;
   ]
 

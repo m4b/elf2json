@@ -15,13 +15,8 @@ let program_header2json ph =
     "flags", `String (flags_to_string ph.p_flags);
   ]
 
-let to_json ~raw:raw phs = 
+let to_json phs = 
   let json = List.map program_header2json phs in
-  let raw = if (raw) then 
-      `String (Elf.ProgramHeader.to_bytes phs)
-    else
-      `Null 
-  in
   let meta = 
     [   
       "bytes", to_byte_array [4; 4; 8; 8; 8; 8; 8; 8;];
@@ -29,7 +24,6 @@ let to_json ~raw:raw phs =
     ] in
   `O [
     "value",`A json;
-    "raw", raw;
     "meta", `O meta;
   ]
 
