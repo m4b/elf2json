@@ -74,15 +74,19 @@ let init_config () =
     name
   }
 
-(* 
-let to_raw binary = 
-  (Array.init  (Bytes.length binary) (fun i ->
-       Bytes.get binary i 
-       |> Char.code
-       |> E2j.Json.to_hex
-     )) |> Array.to_list
- *)
-    
+let sort symbols =
+  List.sort (fun a b ->
+      Pervasives.compare a.Elf.SymbolTable.st_value b.Elf.SymbolTable.st_value
+    ) symbols
+
+let slide_sectors_to_json ss =
+  `A (List.map (fun elem ->
+      `O [("begin", E2j.Json.to_hex elem.Elf.ProgramHeader.start_sector);
+          ("end", E2j.Json.to_hex elem.Elf.ProgramHeader.end_sector);
+          ("slide", E2j.Json.to_hex elem.Elf.ProgramHeader.slide);
+         ]
+    ) ss)
+
 let to_json config =
   let binary = get_bytes config.install_name in
   let elf = Elf.get ~meta_only:true binary in
@@ -90,12 +94,14 @@ let to_json config =
   let program_headers = E2j.ProgramHeader.to_json elf.Elf.program_headers in
   let section_headers = E2j.SectionHeader.to_json  elf.Elf.section_headers in
   let _dynamic = E2j.Dynamic.to_json elf.Elf._dynamic in
-  let dynamic_symbols = E2j.Dynamic.dynamic_symbols2json elf.Elf.dynamic_symbols in
-  let symbol_table = E2j.SymbolTable.to_json elf.Elf.symbol_table in
+  let dynamic_symbols = E2j.Dynamic.dynamic_symbols2json (elf.Elf.dynamic_symbols |> sort) in
+  let symbol_table = E2j.SymbolTable.to_json (elf.Elf.symbol_table |> sort)in
   let relocs = E2j.Reloc.to_json elf.Elf.relocations in
   let libraries = `A (List.map (fun lib -> `String lib)
                         elf.Elf.libraries)
   in
+  let slide_sectors = Elf.ProgramHeader.get_slide_sectors elf.Elf.program_headers
+                    |> slide_sectors_to_json in
   let coverage = if (config.include_coverage) then
                    E2j.Coverage.to_json elf.Elf.byte_coverage
                  else
@@ -115,6 +121,7 @@ let to_json config =
       "dynamicSymbols", dynamic_symbols;
       "symbolTable", symbol_table;
       "relocations", relocs;
+      "slideSectors", slide_sectors;
       "libraries", libraries;
       "soname", `String elf.Elf.soname;
       "interpreter", `String elf.Elf.interpreter;
