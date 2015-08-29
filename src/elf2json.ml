@@ -1,8 +1,6 @@
 open LibRdr.Utils
 
-let version = "v1.0.0"
-
-let goblin = Goblin.Symbol.Export
+let version = "v1.1.0"
 
 let get_bytes filename = 
   let ic = open_in_bin filename in
@@ -47,14 +45,18 @@ let minify = ref false
 let include_coverage = ref false
 let include_base64 = ref false
 let binary = ref ""
+let only = ref ""
 let set_anon_argument string =
   binary := string
+let set_only symbol =
+  only := symbol
 
 type config = {
   minify: bool;
   include_coverage: bool;
   include_base64: bool;
   install_name: string;
+  only: bool;
   name: string;
 }
 
@@ -70,7 +72,8 @@ let init_config () =
     minify = !minify; 
     include_coverage = !include_coverage; 
     include_base64 = !include_base64;
-    install_name; 
+    install_name;
+    only = !only <> "";
     name
   }
 
@@ -87,7 +90,7 @@ let slide_sectors_to_json ss =
          ]
     ) ss)
 
-let to_json config =
+let to_json config :E2j_Json.json =
   let binary = get_bytes config.install_name in
   let elf = Elf.get ~meta_only:true binary in
   let header = E2j.Header.to_json elf.Elf.header in
@@ -130,8 +133,43 @@ let to_json config =
       "size", E2j_Json.to_number elf.Elf.size;
       "coverage", coverage;
       "base64", b64;
-    ] in
-  E2j.Json.print ~minify:config.minify json
+    ]
+  in json
+
+let keys = [
+  "header";
+  "programHeaders";
+  "sectionHeaders";
+  "_dynamic";
+  "dynamicSymbols";
+  "symbolTable";
+  "relocations";
+  "slideSectors";
+  "libraries";
+  "soname";
+  "interpreter";
+  "isLib";
+  "is64";
+  "size";
+  "coverage";
+  "base64"]
+
+let rec get_only (key:string) json =
+  match json with
+  | [] -> `Null
+  | (k,value)::rest ->
+    if (key = k) then
+      `O [(k,value)]
+    else
+      get_only key rest
+
+let get output_only (json:E2j_Json.json) =
+  if (output_only) then 
+    match json with 
+    | `O fields -> get_only !only fields
+    | _ -> `Null
+  else json
+
 
 let main =
   let speclist = 
@@ -141,7 +179,9 @@ let main =
      ("--base64", Arg.Set include_base64, "Include the binary as a base64 encoded string; default false");
      ("-c", Arg.Set include_coverage, "Output data from the byte coverage algorithm; default false");
      ("--coverage", Arg.Set include_coverage, "Output data from the byte coverage algorithm; default false");
-     ("-v", Arg.Set print_version, "Prints the version");     
+     ("-v", Arg.Set print_version, "Prints the version");
+     ("-o", Arg.Symbol (keys, set_only), "Only print a particular key in the JSON object");
+     ("--only", Arg.Symbol (keys, set_only), "Only print a particular key in the JSON object");
     ] in
   let usage_msg = "usage: elf2json [-m --minify] [-b --base64] [-c --coverage] <path_to_binary>\noptions:" in
   Arg.parse speclist set_anon_argument usage_msg;
@@ -155,5 +195,8 @@ let main =
       Arg.usage speclist usage_msg;
       exit 1
     end
-  else
-    to_json config
+    else
+      let json = to_json config in
+      json
+      |> get config.only
+      |> E2j.Json.print ~minify:config.minify
