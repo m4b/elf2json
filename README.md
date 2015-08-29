@@ -2,6 +2,12 @@
 
 Converts an ELF binary to a JSON representation, because it's 2015 and everything should be converted to JSON, and why not?
 
+**New Features**
+
+* `elf2json -o symbolTable` : selectively print keys from the JSON representation
+* `symbolTable` and `dynamicSymbols` are now sorted by address.
+* `slideSectors` key added, which is an object with `begin`, `end`, and `slide` fields which give values to subtract from the VM address of a symbol, to give its binary on-disk offset location (if it has one).
+
 # Install
 
 Easy:
